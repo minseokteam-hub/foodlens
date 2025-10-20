@@ -1,1 +1,442 @@
 <!doctype html><meta charset="utf-8"><title>OK</title><h1>OK</h1>
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>푸드렌즈 - 디자인 통합본</title>
+<style>
+  :root{
+    --bg:#EEE9DF; --screen:#ffffff; --line:#e9edf1; --text:#0b1220; --muted:#6b7280;
+    --accent:#2e90fa; --warn:#f59e0b; --danger:#ef4444; --ok:#22c55e;
+    --radius-phone:30px; --radius-card:20px; --radius-pill:9999px;
+    --shadow:0 18px 38px rgba(0,0,0,.18); --maxw:420px;
+  }
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg);
+    min-height:100dvh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:0; /* 문구를 더 위로 */
+  }
+
+  /* 안내 문구: 항상 폰 '위' + 더 위로 끌어올림 */
+  .page-tagline{
+    order:-1;
+    margin:0 12px 2px;
+    max-width:720px; font-size:18px; line-height:1.65; text-align:center;
+    color:#565b62; letter-spacing:.2px; font-weight:600;
+    transform: translateY(-36px); /* 필요시 -48, -60으로 더 위로 */
+  }
+
+  /* 폰 베젤 */
+  .phone{
+    width:min(92vw,var(--maxw)); height:740px; background:#000;
+    border-radius:var(--radius-phone); outline:22px solid #000;
+    box-shadow:var(--shadow); position:relative; overflow:hidden;
+  }
+  .notch{position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:38%; height:26px; background:#000; border-radius:0 0 16px 16px; z-index:2;}
+  .screen{position:absolute; inset:0; background:var(--screen);
+    display:flex; flex-direction:column; overflow:hidden;}
+
+  /* 헤더 */
+  .app-header{padding:20px 18px 12px; border-bottom:1px solid var(--line);}
+  .app-header h1{margin:8px 0 2px; font-size:22px; color:var(--text);}
+  .app-header .tagline{margin:0 0 10px; color:var(--muted); font-size:13px;}
+  .btn-primary{padding:10px 14px; border-radius:var(--radius-pill);
+    border:1px solid var(--accent); background:var(--accent); color:#fff; font-weight:600; cursor:pointer;}
+
+  /* 내부 스크롤 */
+  .scroll-content{flex:1; min-height:0; overflow-y:auto; padding:14px 18px 18px;
+    display:flex; flex-direction:column; gap:14px;}
+
+  /* 업로드 박스 */
+  .upload-box{border:1px dashed var(--line); border-radius:var(--radius-card);
+    padding:18px; color:var(--muted); text-align:center; transition:.2s;}
+  .upload-box.hover{border-color:var(--accent); background:#f6f9ff;}
+  .upload-help{font-size:13px; margin-top:6px; color:var(--muted);}
+
+  /* 미리보기 */
+  .preview{
+    display:none; border:1px solid var(--line); border-radius:var(--radius-card);
+    padding:10px; background:#fff;
+  }
+  .preview header{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .preview small{color:var(--muted);}
+  .thumb{width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:12px; background:#f3f4f6;}
+
+  /* 섹션/칩 */
+  .symptoms h2,.results h2{font-size:16px; margin:6px 0 8px; color:var(--text);}
+  .chips{display:flex; gap:8px; flex-wrap:wrap;}
+  .chip{border:1px solid var(--line); background:#fff; color:#111827;
+    border-radius:var(--radius-pill); padding:8px 12px; cursor:pointer; font-size:14px; transition:.2s;}
+  .chip.selected{border-color:var(--accent); box-shadow:0 0 0 3px rgba(46,144,250,.15); background:#f7fbff;}
+
+  /* 영양표 */
+  .nutri{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden;
+    border:1px solid var(--line); border-radius:var(--radius-card); background:#fff;}
+  .nutri th,.nutri td{padding:10px 12px; font-size:14px;}
+  .nutri th{width:40%; text-align:left; color:#6b7280; background:#fafbfc;}
+  .nutri tr+tr th,.nutri tr+tr td{border-top:1px solid var(--line);}
+
+  /* 경고 카드 */
+  .alerts{display:grid; gap:10px;}
+  .alert{border-radius:var(--radius-card); padding:12px 14px; border:1px solid var(--line); background:#fff;}
+  .alert h3{margin:0 0 6px; font-size:15px;}
+  .alert.warn{border-color:#fde68a; box-shadow:0 0 0 3px rgba(245,158,11,.15);}
+  .alert.danger{border-color:#fecaca; box-shadow:0 0 0 3px rgba(239,68,68,.15);}
+  .alert.ok{border-color:#bbf7d0; box-shadow:0 0 0 3px rgba(34,197,94,.12);}
+
+  /* DB/그래프 */
+  .db-wrap{display:flex; flex-direction:column; gap:10px;}
+  .db-controls{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .select{border:1px solid var(--line); border-radius:12px; padding:8px 10px; background:#fff;}
+  .btn{padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:#fff; cursor:pointer;}
+  .table{width:100%; border-collapse:collapse; font-size:13px; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  .table th,.table td{padding:8px 10px; border-bottom:1px solid var(--line); text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .table th{background:#fafbfc; color:#6b7280;}
+  canvas{width:100%; height:180px; display:block; background:#fff; border:1px solid var(--line); border-radius:12px; padding:6px; box-sizing:border-box;}
+  .meta{color:#6b7280; font-size:12px; margin-top:6px;}
+  .hint{margin-top:8px; font-size:13px; color:#8a5a00; background:#fff7e6; border:1px solid #fde68a;
+        padding:8px 10px; border-radius:10px;}
+  .pulse{box-shadow:0 0 0 0 rgba(46,144,250,.4); animation:pulse 1.2s ease-out 3;}
+  @keyframes pulse{to{box-shadow:0 0 0 14px rgba(46,144,250,0);}}
+</style>
+</head>
+<body>
+
+  <!-- 안내 문구(위) -->
+  <p class="page-tagline">개인 맞춤 영양소 추천, 모바일 앱의 핵심 기능을 확인해 보세요.</p>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen">
+      <header class="app-header">
+        <h1>푸드렌즈</h1>
+        <p class="tagline">음식 사진으로 당신의 건강을 챙기세요</p>
+        <button id="btnUpload" class="btn-primary" type="button">올리기</button>
+        <input id="fileInput" type="file" accept="image/*" capture="environment" multiple style="display:none" />
+      </header>
+
+      <div class="scroll-content">
+
+        <!-- 업로드 -->
+        <section id="dropZone" class="upload-box" aria-label="업로드 영역">
+          <div><b>Drag & Drop</b> 또는 <b>‘올리기’</b> 버튼 사용</div>
+          <div class="upload-help">미리보기 + 영양분석(데모) / 로컬 DB 자동 저장</div>
+          <div id="uploadStatus" class="meta" aria-live="polite"></div>
+        </section>
+
+        <!-- 미리보기 -->
+        <section id="preview" class="preview">
+          <header>
+            <strong>업로드 미리보기</strong>
+            <small id="previewName"></small>
+          </header>
+          <img id="previewImg" class="thumb" alt="미리보기" />
+        </section>
+
+        <!-- 증상 -->
+        <section class="symptoms">
+          <h2>증상 선택</h2>
+          <div id="chipBox" class="chips" role="group" aria-label="증상 목록">
+            <button class="chip" data-symptom="당뇨">당뇨</button>
+            <button class="chip" data-symptom="고혈압">고혈압</button>
+            <button class="chip" data-symptom="알레르기(땅콩)">알레르기(땅콩)</button>
+            <button class="chip" data-symptom="신장질환">신장질환</button>
+            <button class="chip" data-symptom="위염/역류">위염/역류</button>
+          </div>
+          <div class="meta">여러 개 동시 선택 가능</div>
+        </section>
+
+        <!-- 결과 -->
+        <section class="results" id="results">
+          <h2>결과</h2>
+
+          <!-- 인식 실패시 대체 선택 -->
+          <div class="db-controls">
+            <label for="foodSelect" class="meta">인식 실패 시 직접 선택:</label>
+            <select id="foodSelect" class="select">
+              <option value="">선택 안 함</option>
+              <option value="pizza">피자</option>
+              <option value="ramen">라면/라멘</option>
+              <option value="icecream">아이스크림</option>
+              <option value="bibimbap">비빔밥</option>
+              <option value="salad">샐러드</option>
+              <option value="salmon">연어</option>
+              <option value="dumpling">만두</option>
+            </select>
+          </div>
+          <div id="recognitionHint" class="hint" style="display:none;"></div>
+
+          <!-- 영양 표 -->
+          <table class="nutri" aria-label="영양 성분 표">
+            <tbody>
+              <tr><th>칼로리</th><td id="kcal">-</td></tr>
+              <tr><th>탄수화물</th><td id="carb">-</td></tr>
+              <tr><th>단백질</th><td id="protein">-</td></tr>
+              <tr><th>지방</th><td id="fat">-</td></tr>
+              <tr><th>나트륨</th><td id="sodium">-</td></tr>
+            </tbody>
+          </table>
+          <div class="meta">* 예시 값 — 모델/CSV 연동 시 자동 갱신</div>
+
+          <!-- 경고 카드 -->
+          <div id="alertBox" class="alerts" aria-live="polite" aria-atomic="false"></div>
+        </section>
+
+        <!-- DB & 그래프 -->
+        <section class="db-wrap">
+          <h2>기록 & 그래프</h2>
+          <div class="db-controls">
+            <label class="meta">그래프 항목:</label>
+            <select id="metric" class="select">
+              <option value="kcal">칼로리(kcal)</option>
+              <option value="carb">탄수화물(g)</option>
+              <option value="protein">단백질(g)</option>
+              <option value="fat">지방(g)</option>
+              <option value="sodium">나트륨(mg)</option>
+            </select>
+            <button id="btnExport" class="btn">CSV 내보내기</button>
+            <button id="btnReset" class="btn">기록 초기화</button>
+          </div>
+          <canvas id="chart" width="400" height="180" aria-label="기록 그래프"></canvas>
+          <table class="table" id="logTable">
+            <thead><tr><th>시간</th><th>파일</th><th>음식</th><th>kcal</th><th>Na(mg)</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ===== 유틸 ===== */
+const $ = (sel, el=document) => el.querySelector(sel);
+
+/* 숫자 파싱/임계 비교 */
+function num(val){ if (!val) return null; const m=String(val).match(/[\d.]+/); return m?parseFloat(m[0]):null; }
+function gt(val, thr){ const v=num(val); return v!=null && v>thr; }
+
+/* ===== 데모 영양 DB & 동의어 ===== */
+const nutritionDB = {
+  pizza:   { kcal:'285 kcal', carb:'36 g', protein:'12 g', fat:'10 g', sodium:'640 mg',  sugar:'5 g',  satfat:'4 g'  },
+  ramen:   { kcal:'435 kcal', carb:'66 g', protein:'12 g', fat:'14 g', sodium:'1650 mg', sugar:'4 g',  satfat:'6 g'  },
+  icecream:{ kcal:'207 kcal', carb:'24 g', protein:'4 g',  fat:'11 g', sodium:'80 mg',   sugar:'21 g', satfat:'7 g'  },
+  bibimbap:{ kcal:'560 kcal', carb:'82 g', protein:'18 g', fat:'14 g', sodium:'950 mg',  fiber:'7 g'               },
+  salad:   { kcal:'150 kcal', carb:'10 g', protein:'4 g',  fat:'10 g', sodium:'180 mg',  fiber:'3 g'               },
+  salmon:  { kcal:'208 kcal', carb:'0 g',  protein:'20 g', fat:'13 g', sodium:'59 mg',   satfat:'3 g', potassium:'490 mg' },
+  dumpling:{ kcal:'250 kcal', carb:'28 g', protein:'10 g', fat:'10 g', sodium:'420 mg',  satfat:'3 g'               },
+  default: { kcal:'—', carb:'—', protein:'—', fat:'—', sodium:'—' }
+};
+const synonyms = [
+  { key:'pizza',    words:['pizza','피자'] },
+  { key:'ramen',    words:['ramen','ramyeon','라면','라멘'] },
+  { key:'icecream', words:['icecream','ice-cream','ice cream','아이스크림','ice'] },
+  { key:'bibimbap', words:['bibimbap','비빔밥'] },
+  { key:'salad',    words:['salad','샐러드','셀러드'] },
+  { key:'salmon',   words:['salmon','연어'] },
+  { key:'dumpling', words:['dumpling','dumplings','만두','교자','gyoza','mandu'] },
+];
+function guessFoodFromName(filename=''){
+  const n = filename.toLowerCase();
+  for (const {key, words} of synonyms){ if (words.some(w => n.includes(w))) return key; }
+  return 'default';
+}
+
+/* ===== 상태 ===== */
+let currentNutrition = {};
+const selectedSymptoms = new Set();
+
+/* ===== 표/경고/미리보기 ===== */
+function updateNutrition(n){
+  currentNutrition = n || {};
+  $('#kcal').textContent    = n.kcal    ?? '-';
+  $('#carb').textContent    = n.carb    ?? '-';
+  $('#protein').textContent = n.protein ?? '-';
+  $('#fat').textContent     = n.fat     ?? '-';
+  $('#sodium').textContent  = n.sodium  ?? '-';
+}
+function renderAlerts(){
+  const box=$('#alertBox'), N=currentNutrition; const cards=[];
+  if (selectedSymptoms.size===0){
+    box.innerHTML=`<article class="alert ok"><h3>안내</h3>
+      <p>증상을 선택하면, 현재 음식의 영양성분을 근거로 주의/회피 이유를 구체적으로 보여줍니다.</p></article>`;
+    return;
+  }
+  const make=(title,rs,type,foot)=>`<article class="alert ${type}"><h3>${title}</h3>
+    <ul style="margin:6px 0 6px 18px;">${rs.map(r=>`<li>${r}</li>`).join('')}</ul>
+    <p class="meta">${foot}</p></article>`;
+  function diabetes(){ const rs=[]; if (gt(N.carb,60)) rs.push(`탄수화물 ${N.carb} → 혈당 급상승`);
+    if (gt(N.sugar,20)) rs.push(`당류 ${N.sugar} → 당부하 높음`); if(!rs.length) rs.push(`정제 탄·당 주의`);
+    return make('당뇨 주의', rs,'warn','탄/당은 식후 혈당을 빠르게 올립니다.');}
+  function hypertension(){ const rs=[]; if (gt(N.sodium,1400)) rs.push(`나트륨 ${N.sodium} (매우 높음)`);
+    else if (gt(N.sodium,700)) rs.push(`나트륨 ${N.sodium} (높음)`); if (gt(N.satfat,10)) rs.push(`포화지방 ${N.satfat}`);
+    if(!rs.length) rs.push(`가공/국물류는 나트륨이 높은 편`);
+    return make('고혈압 주의', rs,'warn','저염 옵션·국물 적게 권장.');}
+  function kidney(){ const rs=[]; if (gt(N.sodium,700)) rs.push(`나트륨 ${N.sodium} → 체액/혈압 부담`);
+    if (gt(N.protein,25)) rs.push(`단백질 ${N.protein} → 신장 부담`);
+    if (gt(N.potassium,700)) rs.push(`칼륨 ${N.potassium} → 고칼륨혈증 위험`);
+    if(!rs.length) rs.push(`나트륨·단백질·칼륨을 개인 처방에 맞추세요`);
+    return make('신장질환 주의', rs,'warn','개인별 제한치 상이.');}
+  function gerd(){ const rs=[]; if (gt(N.fat,20)) rs.push(`지방 ${N.fat} → 위 배출 지연/역류`);
+    if (gt(N.satfat,10)) rs.push(`포화지방 ${N.satfat}`); rs.push(`매운맛·산성·카페인 등 악화 가능`);
+    return make('위염/역류 주의', rs,'warn','기름진 음식·자극적 양념을 피하고 소량씩.');}
+  function allergyPeanut(){ return make('알레르기(땅콩) 회피',
+    ['땅콩/견과류 가능성 → 교차오염 주의','성분표 확인 전 섭취 금지'], 'danger','아나필락시스 위험 시 즉시 119.');}
+  for (const s of selectedSymptoms){
+    if (s.includes('알레르기')) cards.push(allergyPeanut());
+    else if (s==='당뇨') cards.push(diabetes());
+    else if (s==='고혈압') cards.push(hypertension());
+    else if (s==='신장질환') cards.push(kidney());
+    else if (s==='위염/역류') cards.push(gerd());
+  }
+  box.innerHTML = cards.join('');
+}
+function showPreview(file){
+  if (!file) { $('#preview').style.display='none'; return; }
+  $('#preview').style.display='block';
+  $('#previewName').textContent = file.name;
+  const url = URL.createObjectURL(file);
+  $('#previewImg').src = url;
+  $('#previewImg').onload = () => URL.revokeObjectURL(url);
+}
+
+/* ===== 업로드/드롭 + 직접 선택 ===== */
+const dropZone=$('#dropZone'), fileInput=$('#fileInput');
+const uploadStatus=$('#uploadStatus');
+function applyNutritionKey(key){
+  updateNutrition(nutritionDB[key] || nutritionDB.default);
+  $('#foodSelect').value = key==='default' ? '' : key;
+  renderAlerts();
+}
+function afterRecognized(file, key){
+  uploadStatus.textContent = file
+    ? `업로드됨: ${file.name} ${key==='default' ? '(인식 실패)' : `(감지: ${key})`}`
+    : '';
+  showPreview(file || null);
+  const rec = makeRecord(file?.name || '(direct-select)', key, currentNutrition);
+  addRecord(rec); drawChart(); renderTable();
+}
+function handleFiles(fileList){
+  const first = fileList && fileList[0];
+  const name = first ? first.name : '';
+  const key = first ? guessFoodFromName(name) : 'default';
+  applyNutritionKey(key);
+  const hint = $('#recognitionHint');
+  if (key==='default'){
+    hint.style.display='block';
+    hint.innerHTML='파일명에 음식 키워드가 없어 인식이 어려워요. 아래 드롭다운에서 직접 선택해주세요.';
+    const sel=$('#foodSelect'); sel.classList.add('pulse'); sel.focus({preventScroll:true});
+    $('#results').scrollIntoView({behavior:'smooth', block:'center'});
+    setTimeout(()=> sel.classList.remove('pulse'), 2000);
+  } else { hint.style.display='none'; }
+  afterRecognized(first, key);
+}
+$('#btnUpload').addEventListener('click', ()=> fileInput.click());
+fileInput.addEventListener('change', ()=>{ if (fileInput.files?.length) handleFiles(fileInput.files); });
+;['dragenter','dragover'].forEach(evt=> dropZone.addEventListener(evt, e=>{e.preventDefault(); e.stopPropagation(); dropZone.classList.add('hover');}));
+;['dragleave','drop'].forEach(evt=> dropZone.addEventListener(evt, e=>{e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('hover');}));
+dropZone.addEventListener('drop', e=>{ const files=e.dataTransfer?.files; if (files?.length) handleFiles(files); });
+
+$('#foodSelect').addEventListener('change', e=>{
+  const key = e.target.value || 'default';
+  applyNutritionKey(key);
+  afterRecognized(null, key);
+});
+
+/* ===== 증상 선택 ===== */
+$('#chipBox').addEventListener('click', e=>{
+  const chip=e.target.closest('.chip'); if(!chip) return;
+  const key=chip.dataset.symptom;
+  chip.classList.toggle('selected');
+  chip.classList.contains('selected') ? selectedSymptoms.add(key) : selectedSymptoms.delete(key);
+  renderAlerts();
+});
+
+/* ===== 로컬 DB(localStorage) ===== */
+const DB_KEY = 'foodlens_records_v1';
+function loadDB(){ try{ return JSON.parse(localStorage.getItem(DB_KEY) || '[]'); }catch{ return []; } }
+function saveDB(arr){ localStorage.setItem(DB_KEY, JSON.stringify(arr)); }
+function makeRecord(filename, label, nutri){
+  return {
+    ts: new Date().toISOString(),
+    file: filename,
+    label,
+    kcal: num(nutri.kcal),
+    carb: num(nutri.carb),
+    protein: num(nutri.protein),
+    fat: num(nutri.fat),
+    sodium: num(nutri.sodium)
+  };
+}
+let records = loadDB();
+function addRecord(rec){
+  records.push(rec);
+  if (records.length > 200) records = records.slice(-200);
+  saveDB(records);
+}
+
+/* ===== 표 & 그래프(Canvas) ===== */
+const ctx = $('#chart').getContext('2d');
+function drawChart(){
+  const metric = $('#metric').value;
+  const data = records.slice(-12);
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const pad = 26, aw = W - pad*2, ah = H - pad*2;
+  const vals = data.map(r=> r[metric] ?? 0);
+  const maxv = Math.max(10, ...vals);
+  ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad, H-pad); ctx.lineTo(W-pad, H-pad); ctx.stroke();
+  const n = Math.max(1, data.length), gap = 6;
+  const bw = (aw - gap*(n-1)) / n;
+  ctx.fillStyle = '#3b82f6';
+  data.forEach((r, i)=>{
+    const v = r[metric] ?? 0;
+    const h = (v / maxv) * (ah-10);
+    const x = pad + i*(bw+gap);
+    const y = H - pad - h;
+    ctx.fillRect(x, y, bw, h);
+  });
+  ctx.fillStyle = '#6b7280'; ctx.font = '12px system-ui';
+  data.forEach((r,i)=>{
+    const x = pad + i*(bw+gap) + bw/2;
+    const label = (r.label||'-').slice(0,4);
+    ctx.textAlign='center'; ctx.fillText(label, x, H-pad+14);
+  });
+}
+function renderTable(){
+  const tb = $('#logTable tbody');
+  tb.innerHTML = records.slice(-20).reverse().map(r=>`
+    <tr>
+      <td>${new Date(r.ts).toLocaleString()}</td>
+      <td title="${r.file||''}">${(r.file||'').slice(0,18)}</td>
+      <td>${r.label||'-'}</td>
+      <td>${r.kcal??'-'}</td>
+      <td>${r.sodium??'-'}</td>
+    </tr>
+  `).join('');
+}
+$('#metric').addEventListener('change', drawChart);
+$('#btnReset').addEventListener('click', ()=>{
+  if (!confirm('모든 기록을 지울까요?')) return;
+  records=[]; saveDB(records); drawChart(); renderTable();
+});
+$('#btnExport').addEventListener('click', ()=>{
+  const header = ['ts','file','label','kcal','carb','protein','fat','sodium'];
+  const rows = [header.join(',')].concat(records.map(r=> header.map(k=> r[k]??'').join(',')));
+  const blob = new Blob([rows.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'foodlens_records.csv'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* 초기 렌더 */
+renderAlerts();
+updateNutrition(nutritionDB.default);
+drawChart(); renderTable();
+</script>
+</body>
+</html>
